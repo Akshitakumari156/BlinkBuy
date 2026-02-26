@@ -48,7 +48,7 @@ const newOtp = otpGenerator.generate(4, {
     // return response
     return res.status(200).json({
         success:true,
-        message:"Otp created successfully",
+        message:"Otp send successfully",
         newOpt,      
     });
 
@@ -63,6 +63,7 @@ const newOtp = otpGenerator.generate(4, {
     }
 
 }
+
 
 // Sign Up
 exports.signUp =async(req,res)=>{
@@ -148,6 +149,7 @@ exports.signUp =async(req,res)=>{
         
     }
 }
+
 
 // login
 exports.login = async(req,res)=>{
