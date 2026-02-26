@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const {createOpt}  = require("../controllers/authContoller");
+const {createOpt,signUp}  = require("../controllers/authContoller");
 
 router.post("/create-otp",createOpt);
+router.post("/signup",signUp);
 
 
 
