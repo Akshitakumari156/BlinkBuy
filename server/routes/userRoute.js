@@ -5,7 +5,7 @@ const {createOpt,signUp}  = require("../controllers/authContoller");
 
 router.post("/create-otp",createOpt);
 router.post("/signup",signUp);
-
+router.post("/login",login);
 
 
 module.exports = router;

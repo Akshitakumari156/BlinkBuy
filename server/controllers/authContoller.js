@@ -2,7 +2,7 @@ const OTP = require("../models/otp");
 const User = require("../models/user");
 const otpGenerator = require("otp-generator");
 const bacrypt = require("bcrypt");
-
+const jwt = require("jsonwebtoken");
 
 // create and send otp
 exports.createOpt = async(req,res)=>{
@@ -149,4 +149,72 @@ exports.signUp =async(req,res)=>{
     }
 }
 
+// login
+exports.login = async(req,res)=>{
+    try {
+        // fetch data
+        const {email,password} = req.body;
 
+        // validation
+        if(!email || !password){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill all the input fields",
+            })
+        }
+
+        // check is email regeistered or not
+        const userDeatails = await User.findOne({email:email});
+
+        if(!userDeatails){
+            return res.status(404).json({
+                success:false,
+                message:"email not registered",
+            })
+        }
+
+        // check password
+        const isMatched = await bacrypt.compare(password,userDeatails.password);
+
+        // password sahi hai
+        if(isMatched){
+
+            const payload = {
+                userId:userDeatails._id,
+                userEmail:userDeatails.email,
+            }
+         
+            // create token
+            const token = jwt.sign(payload,"sourabh",{
+                expiresIn:"2h"
+            });
+
+           const user1 = userDeatails.toObject();
+           user1.password = undefined;
+
+           user1.token = token;
+
+            // return response
+            return res.status(200).json({
+                success:true,
+                message:"Login successfully",
+                userDeatails:user1,
+            })
+        }
+
+        // password galat hai 
+        else{
+            return res.status(403).json({
+                success:false,
+                message:"Password not matched"
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success:false,
+            message:"Internal server error",
+        })
+        
+    }
+}
