@@ -220,3 +220,176 @@ exports.login = async(req,res)=>{
         
     }
 }
+
+
+
+// send otp for reset password
+exports.sendOtpforgotPassword = async(req,res)=>{
+  try {
+
+    // fetch email
+    const {email} = req.body;
+
+    // validation 
+    if(!email){
+        return res.status(400).json({
+            success:false,
+            message:"please fill all the input fileds",
+        });
+    }
+
+    // check is user allready have an account
+    const userDetails = await User.findOne({email:email});
+
+    if(!userDetails){
+        return res.status(400).json({
+            success:false,
+            message:"User not registered",
+        })
+    }
+     
+    // generate otp
+const newOtp = otpGenerator.generate(4, {
+  upperCaseAlphabets: false,
+  lowerCaseAlphabets: false,
+  specialChars: false,
+ 
+});
+
+
+    // create entry in db
+    const newOpt = await OTP.create({
+        email:email,
+        otp:newOtp,
+    });
+
+
+    // return response
+    return res.status(200).json({
+        success:true,
+        message:"Otp send successfully",
+        newOpt,      
+    });
+
+  
+    } catch (error) {
+       console.log(error);
+       return res.status(500).json({
+        success:false,
+        message:"Internal Setver error",
+       })
+        
+    }
+
+}
+
+
+// verify otp
+exports.forgotPasswordOtpVerifiy = async(req,res)=>{
+
+    try {
+
+        // fetch data
+        const {otp,email} = req.body;
+
+        // validation
+        if(!otp){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill th otp"
+            })
+        }
+          if(!email){
+            return res.status(400).json({
+                success:false,
+                message:"something went wrong"
+            })
+        }
+
+
+        // find latest opt
+        const latestOtp = await OTP.findOne({email:email}).sort({createdAt:-1});
+
+        if(!latestOtp){
+            return res.status(404).json({
+                success:false,
+                message:"Otp expires"
+            })
+        }
+
+
+        // verify the otp
+        if(latestOtp.otp !== otp){
+            return res.status(403).json({
+                success:false,
+                message:"Otp not matched",
+            })
+        }
+
+
+        // return response
+        return res.status(200).json({
+            success:true,
+            message:"Otp matched successfully"
+        })
+
+
+        
+    } catch (error) {
+       console.log(error);
+       return res.status(500).json({
+        success:false,
+        message:"Internal Server error",
+       })
+        
+    }
+
+}
+
+
+// reset password
+exports.resetPassword = async(req,res)=>{
+    try {
+        
+        // fetch data
+        const {password,confirmPassword,email} = req.body;
+
+        // validation
+        if(!password || !confirmPassword || !email){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill all the input fields"
+            })
+        }
+        
+        // check password and confirm is same or not
+        if(password !== confirmPassword){
+            return res.status(400).json({
+                success:false,
+                message:"Password and confirmPassword not matched",
+
+            })
+        }
+
+        // hash the password
+        const hashedPassword = await bacrypt.hash(password,10);
+
+        // update password
+        const updatedUser = await User.findOneAndUpdate({email:email},{
+            password:hashedPassword,
+        },{new:true});
+
+        // return response
+        return res.status(200).json({
+            success:true,
+            message:"Password updated successfully",
+        })
+    } catch (error) {
+       console.log(error);
+       return res.status(500).json({
+        success:false,
+        message:"Internal Server error",
+       })
+        
+    }
+}

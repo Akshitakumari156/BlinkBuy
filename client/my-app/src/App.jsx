@@ -4,6 +4,7 @@ import SignUp from './Pages/Auth/SignUp'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Otp from './Pages/Auth/Otp'
 import Login from './Pages/Auth/Login'
+import ForgotPassword from "./Pages/Auth/ForgetPassword"
 
 
 const App = () => {
@@ -16,6 +17,9 @@ const App = () => {
     },
     {
       path:"/login",element:<><Login/></>
+    },
+    {
+      path:"/forgot-password",element:<><ForgotPassword/></>
     }
   ])
   return (

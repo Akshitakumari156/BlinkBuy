@@ -126,7 +126,7 @@ const Login = () => {
                       )
                     }}
                     />
-                    <Link to={"#"} className=' inputAnimation text-[14px] text-blue-600 self-end'>
+                    <Link to={"/forgot-password"} className=' inputAnimation text-[14px] text-blue-600 self-end'>
                     Forgot password?
                     </Link>
                  </div>

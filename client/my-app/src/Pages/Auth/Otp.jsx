@@ -43,10 +43,7 @@ const Otp = () => {
      }
 
     //  verify Otp
-     if (!formData?.email) {
-  navigate("/");
-  return null;
-}
+
     const verifyOtpHandler = async()=>{
       if(otp.length < 4){
         toast.error("Please fill the otp");
