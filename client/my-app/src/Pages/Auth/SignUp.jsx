@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import LogoAnimation from '../../components/Auth/LogoAnimation'
-import { Button, TextField, Typography } from '@mui/material'
+import { Button, InputAdornment, TextField, Typography } from '@mui/material'
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { useNavigate } from 'react-router-dom';
+import { IoEyeSharp } from "react-icons/io5";
+import { BsFillEyeSlashFill } from "react-icons/bs";
 
 const SignUp = () => {
  const [formData,setFormData] = useState({
@@ -15,7 +18,13 @@ const SignUp = () => {
   email:"",
 
  });
+
+ const [showPassword,setShowPassword] = useState(false);
+ const [confirShowPassword,setConfirmShowPassword] = useState(false);
+
  const [loading,setLoading]  = useState(false);
+
+ const navigate = useNavigate();
 
  const changeHandler = (event)=>{
   setFormData(prev =>{
@@ -43,11 +52,18 @@ const SignUp = () => {
     email:formData.email,
   }
 
-    const toastId = toast.loading("sending opt...");
+    const toastId = toast.loading("sending otp...");
   try {
     setLoading(true);
-    const response = await axios.post("http://localhost:3000/api/v1/create-otp",data);
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/create-otp`,data);
+
+     if(!response.data.success){
+
+         throw new Error("Error occur during signUp");
+    }
+
     toast.dismiss(toastId);
+    navigate("/otp",{state:{Data:formData}});
     toast.success(response.data.message);
     setLoading(false);
     
@@ -74,10 +90,9 @@ const SignUp = () => {
    t1.from(".ipF",{
     y:100,
     opacity:0,
-    delay:0.1,
     duration:0.3,
     stagger:0.2,
-   })
+   },"-=0.9")
   })
 
   return (
@@ -126,7 +141,7 @@ const SignUp = () => {
               className='ipF'
             />
 
-             <TextField type="password" 
+             <TextField type={showPassword ? "text" : "password"}
             variant="filled" 
             placeholder='Enter your password'
             label="Password"
@@ -135,9 +150,24 @@ const SignUp = () => {
            onChange={changeHandler}
             name='password'
               className='ipF'
+              InputProps={{
+                endAdornment:(
+                  <InputAdornment position="end">
+                    
+                    {
+                      showPassword ? <IoEyeSharp size={25} className="cursor-pointer"
+                      onClick={()=>{setShowPassword(false)}}/>
+                      : <BsFillEyeSlashFill size={25} className="cursor-pointer"
+                       onClick={()=>{setShowPassword(true)}}/>
+                    }
+                  </InputAdornment>
+                )
+              }}
             />
 
-              <TextField type="password" 
+              <TextField type={
+                confirShowPassword ? "text" : "password"
+              }
             variant="filled" 
             placeholder='Confirm your password'
             label="Confirm Password"
@@ -146,6 +176,20 @@ const SignUp = () => {
            onChange={changeHandler}
             name='confirmPassword'
               className='ipF'
+                  InputProps={{
+                endAdornment:(
+                  <InputAdornment position="end">
+                  
+                      {
+                      confirShowPassword ? <IoEyeSharp size={25} className="cursor-pointer"
+                      onClick={()=>{setConfirmShowPassword(false)}}/>
+                      : <BsFillEyeSlashFill size={25} className="cursor-pointer"
+                       onClick={()=>{setConfirmShowPassword(true)}}/>
+                    }
+                  
+                  </InputAdornment>
+                )
+              }}
             />
 
        <div className='flex items-center'>
@@ -154,6 +198,8 @@ const SignUp = () => {
            type="submit"
            fullWidth
            className='ipF'
+           disabled={loading}
+           sx={{textTransform:"none"}}
             >Sign Up</Button>
            {
             loading &&  <i class="fa-solid fa-spinner animate-spin -ml-8"></i>
@@ -164,9 +210,11 @@ const SignUp = () => {
           </form>
            <p className='text-black  mt-6 flex justify-center gap-2 text-[16px] ipF'>
             Allreday have an account?
-             <span className='text-blue-600'>Sign In</span>
+             <span className='text-blue-600 cursor-pointer' 
+             onClick={()=>{navigate("/login")}}>Sign In</span>
               </p>
        </div>
+    
    </div>
 
         {/* smartX logo  */}

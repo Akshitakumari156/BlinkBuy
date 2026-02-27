@@ -3,9 +3,11 @@ const express = require("express");
 const dbConnect = require("./config/mongoDbConnection");
 const app = express();
 const userRoute = require("./routes/userRoute");
+const cors = require("cors");
 
 const PORT = process.env.PORT || 4000;
 
+app.use(cors());
 app.use(express.json());
 
 // mount route

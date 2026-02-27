@@ -23,9 +23,10 @@ const sendOtp = async(email,otp)=>{
     await sendMail(email,"for otp verfication",otpEmailTemplate(otp))
 }
 
-otpSchema.pre("save",async function(next){
-await sendOtp(this.email,this.otp);
-next();
+otpSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    await sendOtp(this.email, this.otp);
+  }
+  next();
 });
-
 module.exports = mongoose.model("OTP",otpSchema);
