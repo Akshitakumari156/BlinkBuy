@@ -1,6 +1,6 @@
-# Connectify 🛒✨
+# BlinkBuy 🛒✨
 
-Connectify is a modern, feature-rich web application for buying and selling second-hand products. Built with a focus on seamless user experience, it features an intuitive UI, real-time user-to-user messaging, an AI-powered smart assistant, advanced search, and secure user authentication.
+BlinkBuy is a modern, feature-rich web application for buying and selling second-hand products. Built with a focus on seamless user experience, it features an intuitive UI, real-time user-to-user messaging, an AI-powered smart assistant, advanced search, and secure user authentication.
 
 ## 🚀 Features
 
