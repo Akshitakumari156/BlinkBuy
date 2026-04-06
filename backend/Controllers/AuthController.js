@@ -1,90 +1,536 @@
-import bcrypt from "bcryptjs"
-import crypto from "crypto"
-import {userModel }from "../Models/db.js"
-import jwt from "jsonwebtoken"
-import sendEmail from "../Utils/sendEmail.js";
+const OTP = require("../models/otp");
+const User = require("../models/user");
+const otpGenerator = require("otp-generator");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { fileUpload } = require("../utils/cloudUplod");
 
-export const signup=async(req,res)=>{
-    try{
-        const { name, email, password } = req.body;
-    const existingUser = await userModel.findOne({ email: email.toLowerCase() });
 
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
+// create and send otp
+exports.createOpt = async(req,res)=>{
+  try {
+
+    // fetch email
+    const {email} = req.body;
+
+    // validation 
+    if(!email){
+        return res.status(400).json({
+            success:false,
+            message:"please fill all the input fileds",
+        });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    const user = await userModel.create({
-      name,
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      verificationToken,
-      isVerified: false,
+
+    // check is user allready have an account
+    const userDetails = await User.findOne({email:email});
+
+    if(userDetails){
+        return res.status(400).json({
+            success:false,
+            message:"User allready have an account",
+        })
+    }
+     
+    // generate otp
+const newOtp = otpGenerator.generate(4, {
+  upperCaseAlphabets: false,
+  lowerCaseAlphabets: false,
+  specialChars: false,
+ 
+});
+
+
+    // create entry in db
+    const newOpt = await OTP.create({
+        email:email,
+        otp:newOtp,
     });
-    await sendEmail(user.email, verificationToken);
-    res.status(201).json({
-      message: "User registered successfully. Please verify your email.",
+
+
+    // return response
+    return res.status(200).json({
+        success:true,
+        message:"Otp send successfully",
+        newOpt,      
     });
-    }catch(error){
-       console.error(error);
-       res.status(500).json({ message: "Server error" });
+
+  
+    } catch (error) {
+       console.log(error);
+       return res.status(500).json({
+        success:false,
+        message:"Internal Setver error",
+       })
+        
+    }
+
+}
+
+
+// Sign Up
+exports.signUp =async(req,res)=>{
+    try {
+        // fetch data
+        const {firstName,lastName,password,confirmPassword,otp,email} = req.body;
+
+        // validation
+        if(!firstName || !lastName || !password || !confirmPassword || !otp || !email){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill all the input fields.",
+            })
+        }
+        
+        // check password and confirmPassword is same or not
+        if(password !== confirmPassword){
+         return res.status(400).json({
+            success:false,
+            message:"Password and confirmPassword not matched."
+         })
+        }
+
+
+        // check user allready registered or not
+        const userExistence = await User.findOne({email:email});
+
+        if(userExistence){
+            return res.status(400).json({
+                success:false,
+                message:"User allready registered"
+            })
+        }
+
+        // find latest otp
+        const latestOtp = await OTP.findOne({email:email}).sort({createdAt:-1});
+
+        if(!latestOtp){
+            return res.status(404).json({
+                success:false,
+                message:"Otp not found"
+            })
+        }
+
+        // verfiy otp
+        if(otp !== latestOtp.otp){
+            return res.status(400).json({
+                success:false,
+                message:"Otp not matched"
+            })
+        }
+
+      
+        // hash the password
+        const hashedPassword = await bcrypt.hash(password,10);
+
+        // careate profile picture
+        const profilePicture =  await `https://api.dicebear.com/7.x/initials/svg?seed=${firstName}%20${lastName}`
+        
+
+
+        // create entry in db
+        const newUser = await User.create({
+            firstName:firstName,
+            lastName:lastName,
+            email:email,
+            password:hashedPassword,
+            profilePicture:profilePicture,
+        })
+
+        // return response
+        return res.status(200).json({
+            success:true,
+            message:"Account created successfully",
+            newUser:newUser,
+        })
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success:false,
+            message:"Internal Server error",
+        })
+        
     }
 }
 
-export const verifyEmail = async (req, res) => {
+
+// login
+exports.login = async(req,res)=>{
+    try {
+        // fetch data
+        const {email,password} = req.body;
+
+        // validation
+        if(!email || !password){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill all the input fields",
+            })
+        }
+
+        // check is email regeistered or not
+        const userDeatails = await User.findOne({email:email});
+
+        if(!userDeatails){
+            return res.status(404).json({
+                success:false,
+                message:"email not registered",
+            })
+        }
+
+        // check password
+        const isMatched = await bcrypt.compare(password,userDeatails.password);
+
+        // password sahi hai
+        if(isMatched){
+
+            const payload = {
+                userId:userDeatails._id,
+                userEmail:userDeatails.email,
+            }
+         
+            // create token
+            const token = jwt.sign(payload,"sourabh",{
+                expiresIn:"2h"
+            });
+
+        userDeatails.password = undefined;
+
+            // return response
+            return res.status(200).json({
+                success:true,
+                message:"Login successfully",
+                userDeatails:userDeatails,
+                token:token,
+            })
+        }
+
+        // password galat hai 
+        else{
+            return res.status(403).json({
+                success:false,
+                message:"Password not matched"
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success:false,
+            message:"Internal server error",
+        })
+        
+    }
+}
+
+
+
+// send otp for reset password
+exports.sendOtpforgotPassword = async(req,res)=>{
   try {
-    const { token } = req.params;
 
-    const user = await userModel.findOne({ verificationToken: token });
+    // fetch email
+    const {email} = req.body;
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+    // validation 
+    if(!email){
+        return res.status(400).json({
+            success:false,
+            message:"please fill all the input fileds",
+        });
     }
 
-    user.isVerified = true;
-    user.verificationToken = "";
+    // check is user allready have an account
+    const userDetails = await User.findOne({email:email});
 
-    await user.save();
-
-    res.status(200).json({ message: "Email verified successfully" });
-
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await userModel.findOne({ email: email.toLowerCase() });
-
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    if(!userDetails){
+        return res.status(400).json({
+            success:false,
+            message:"User not registered",
+        })
     }
+     
+    // generate otp
+const newOtp = otpGenerator.generate(4, {
+  upperCaseAlphabets: false,
+  lowerCaseAlphabets: false,
+  specialChars: false,
+ 
+});
 
-    if (!user.isVerified) {
-      return res.status(401).json({ message: "Please verify your email first" });
-    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE }
-    );
-
-    res.status(200).json({
-      message: "Login successful",
-      token,
+    // create entry in db
+    const newOpt = await OTP.create({
+        email:email,
+        otp:newOtp,
     });
 
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+
+    // return response
+    return res.status(200).json({
+        success:true,
+        message:"Otp send successfully",
+        newOpt,      
+    });
+
+  
+    } catch (error) {
+       console.log(error);
+       return res.status(500).json({
+        success:false,
+        message:"Internal Setver error",
+       })
+        
+    }
+
+}
+
+
+// verify otp
+exports.forgotPasswordOtpVerifiy = async(req,res)=>{
+
+    try {
+
+        // fetch data
+        const {otp,email} = req.body;
+
+        // validation
+        if(!otp){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill th otp"
+            })
+        }
+          if(!email){
+            return res.status(400).json({
+                success:false,
+                message:"something went wrong"
+            })
+        }
+
+
+        // find latest opt
+        const latestOtp = await OTP.findOne({email:email}).sort({createdAt:-1});
+
+        if(!latestOtp){
+            return res.status(404).json({
+                success:false,
+                message:"Otp expires"
+            })
+        }
+
+
+        // verify the otp
+        if(latestOtp.otp !== otp){
+            return res.status(403).json({
+                success:false,
+                message:"Otp not matched",
+            })
+        }
+
+
+        // return response
+        return res.status(200).json({
+            success:true,
+            message:"Otp matched successfully"
+        })
+
+
+        
+    } catch (error) {
+       console.log(error);
+       return res.status(500).json({
+        success:false,
+        message:"Internal Server error",
+       })
+        
+    }
+
+}
+
+
+// reset password
+exports.resetPassword = async(req,res)=>{
+    try {
+        
+        // fetch data
+        const {password,confirmPassword,email} = req.body;
+
+        // validation
+        if(!password || !confirmPassword || !email){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill all the input fields"
+            })
+        }
+        
+        // check password and confirm is same or not
+        if(password !== confirmPassword){
+            return res.status(400).json({
+                success:false,
+                message:"Password and confirmPassword not matched",
+
+            })
+        }
+
+        // hash the password
+        const hashedPassword = await bcrypt.hash(password,10);
+
+        // update password
+        const updatedUser = await User.findOneAndUpdate({email:email},{
+            password:hashedPassword,
+        },{new:true});
+
+        // return response
+        return res.status(200).json({
+            success:true,
+            message:"Password updated successfully",
+        })
+    } catch (error) {
+       console.log(error);
+       return res.status(500).json({
+        success:false,
+        message:"Internal Server error",
+       })
+        
+    }
+}
+
+
+// update profile picture
+exports.updateProfilePicture = async(req,res)=>{
+    try {
+        const {image} = req.files;
+
+        if(!image){
+            return res.status(400).json({
+                success:false,
+                message:"Please select the image",
+            })
+        }
+
+        const userId = req.body.userId;
+
+        if(!userId){
+            return res.status(400).json({
+                success:false,
+                message:"something went wrong",
+            })
+        }
+
+        // upload image to the cloudinary
+        const uploadImage = await fileUpload(image,"sourabh");
+
+        // update profile picture
+        const updateUser = await User.findByIdAndUpdate(userId,{
+            profilePicture:uploadImage.secure_url,
+        },{new:true}).select("-password");
+
+        // return response
+        return res.status(200).json({
+            success:true,
+            message:"Profile picture updated successfully",
+            updateUser:updateUser,
+        })
+        
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        success:false,
+        message:"Internal Server error",
+      })
+        
+    }
+}
+
+
+// update firstName and lastName
+exports.nameUpdate = async(req,res)=>{
+    try {
+        // fetch data
+        const {firstName,lastName,userId} = req.body;
+
+        // validation
+        if(!firstName || !lastName || !userId){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill all the input fields",
+            })
+        }
+
+        // update user Name
+        const updateUser = await User.findByIdAndUpdate(userId,{
+            firstName:firstName,
+            lastName:lastName,
+        },{new:true}).select("-password");
+
+        // return response
+        return res.status(200).json({
+            success:true,
+            message:"Name updated Successfully",
+            updateUser:updateUser,
+        });
+        
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        success:false,
+        message:"Internal Server error",
+      })
+        
+    }
+}
+
+// update password
+exports.passwordUpdate = async(req,res)=>{
+    try {
+        // fetch data
+        const {currentPassword,changePassword,userId} = req.body;
+
+        // validation
+        if(!currentPassword || !changePassword || !userId){
+            return res.status(400).json({
+                success:false,
+                message:"Please fill all the input fields",
+            })
+        }
+        
+        // find userDeatails
+        const userDetails = await User.findById(userId);
+
+        // match currentPassword
+
+        const isMatched = await bcrypt.compare(currentPassword,userDetails.password);
+
+        if(!isMatched){
+           return res.status(400).json({
+            success:false,
+            message:"Current Password not matched",
+           })
+        }
+
+        // hash the changePassword
+        const hashedPassword  = await bcrypt.hash(changePassword,10);
+
+        // update the password
+        const updatedUser =  await User.findByIdAndUpdate(userId,{
+            password:hashedPassword,
+        },{new:true});
+
+        // return response
+        return res.status(200).json({
+            success:true,
+            message:"Password updated successfully",
+        })        
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        success:false,
+        message:"Internal Server error",
+      })
+        
+    }
+}
+
+
+
+

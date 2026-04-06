@@ -1,97 +1,34 @@
-import express from 'express';
-import cors from 'cors';
-import mongoose from 'mongoose';
-import http from 'http';
-import AuthRouter from "./Routes/authRoutes.js"
-import connectDB from "./Config/db.js";
-import dotenv from "dotenv";
-import {Server} from "socket.io";
-import jwt from "jsonwebtoken";
-import {userModel} from "./Models/db.js";
-import{ messageModel} from "./Models/db.js";
-import messageRoutes from "./Routes/messageRoutes.js";
-import userRouter from "./Routes/userRouter.js";
-dotenv.config();
-
-connectDB();
+require("dotenv").config();
+const express = require("express");
+const dbConnect = require("./config/mongoDbConnection");
 const app = express();
+const userRoutes = require("./routes/userRoute");
+const categoryRoutes = require("./routes/categoryRoute");
+const productRoutes = require("./routes/productRoute");
+const aiRoutes = require("./routes/aiRoute");
+const fileUpload = require("express-fileupload");
+const cors = require("cors");
 
-const server=http.createServer(app);
 
-app.use(cors({
-  origin: "http://localhost:5173", // your frontend
-  credentials: true,
-}));
+const PORT = process.env.PORT || 4000;
+
+app.use(cors());
 app.use(express.json());
-app.use("/auth", AuthRouter)
-app.use("/messages",messageRoutes)
-app.use("/users",userRouter);
-const io=new Server(server,{
-    cors:{
-        origin:"http://localhost:5173",
-        methods:["GET","POST"],
-        credentials:true
-       }
-});
 
-io.use(async (socket, next) => {
-  try {
-    const token = socket.handshake.auth.token;
-    if (!token) return next(new Error("No token"));
+app.use(fileUpload({
+    useTempFiles : true,
+    tempFileDir : '/tmp/'
+}));
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = decoded.id;
+// mount route
+app.use("/api/v1",userRoutes);
+app.use("/api/v1",categoryRoutes);
+app.use("/api/v1",productRoutes);
+app.use("/api/v1",aiRoutes);
 
-    await userModel.findByIdAndUpdate(decoded.id, {
-      SocketId: socket.id
-    });
 
-    next();
-  } catch (err) {
-    next(new Error("Invalid token"));
-  }
-});
+dbConnect();
 
-io.on("connect", (socket) => {
-  console.log("User connected:", socket.id);
-  socket.on("disconnect", async () => {
-    await userModel.findByIdAndUpdate(socket.userId, {
-      SocketId: ""
-    });
-    console.log("User disconnected:", socket.userId);
-  });
-  
-  socket.on("private_message",async({receiverId,text})=>{
-     console.log("ReceiverId:", receiverId, "Text:", text);
-    try{
-      const message=await messageModel.create({
-        sender:socket.userId,
-        receiver:receiverId,
-        text:text
-      });
-      const receiver=await userModel.findById(receiverId);
-      if(receiver?.SocketId){
-        io.to(receiver.SocketId).emit("private_message",{
-          _id:message._id,
-          sender:socket.userId,
-          receiver:receiverId,
-          text:text,
-          createdAt:message.createdAt,
-        });
-      }
-      socket.emit("private_message",{
-        _id:message._id,
-        sender:socket.userId,
-        receiver:receiverId,
-        text:text,
-        createdAt:message.createdAt
-      })
-    }catch(error){
-      console.error("Error sending message:", error);
-    }
-  })
-});
-
-server.listen(5000, () => {
-    console.log("Server is running on port 5000");
+app.listen(PORT,()=>{
+console.log(`Server is successfully running at port number ${PORT}`);
 });
