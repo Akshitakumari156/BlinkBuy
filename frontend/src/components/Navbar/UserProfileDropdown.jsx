@@ -8,11 +8,15 @@ import { useDispatch } from 'react-redux';
 import { removeToken } from '../../redux/slices/auth';
 import { setUserData } from '../../redux/slices/userData';
 import { MdOutlineProductionQuantityLimits } from "react-icons/md";
+import { IoChatboxOutline } from "react-icons/io5";
 import toast from 'react-hot-toast';
+import aiLogo from "../../assets/gemini-color.png";
+import ChatboatModal from '../ChatboatModal';
 
 const UserProfileDropdown = ({setShowDropDown}) => {
 
     const [open,setOpen] = useState(false);
+    const [chatboat,setChatboat] = useState(false);
     const dispatch = useDispatch();
 
     const showDialog = ()=>{
@@ -31,6 +35,13 @@ const UserProfileDropdown = ({setShowDropDown}) => {
     }
   return (
     <div className='px-4 py-1 pb-3 flex flex-col gap-4'>
+
+       <Link to="/chat-users" className='flex items-center gap-4 '
+        onClick={()=>{setShowDropDown(false)}}>
+        <IoChatboxOutline size={25}/>
+         <p className='font-semibold text-[18px]'>Chat</p>
+        </Link>
+
         <Link to="/settings" className='flex items-center gap-4 '
         onClick={()=>{setShowDropDown(false)}}>
         <IoSettingsOutline size={25}/>
@@ -48,6 +59,15 @@ const UserProfileDropdown = ({setShowDropDown}) => {
         <LuBadgeHelp size={25}/>
          <p className='font-semibold text-[18px]'>Help</p>
         </Link>
+
+         <div className='flex gap-2 items-center cursor-pointer'
+         onClick={()=>{
+          setChatboat(true);
+         }}>
+                    <img src={aiLogo} alt="ai" className='h-6' />
+                    <p className='font-semibold text-[18px]'>SmartX Bot</p>
+                  </div>
+
         <div className='flex items-center gap-4 cursor-pointer'
         onClick={showDialog}
         >
@@ -71,6 +91,11 @@ const UserProfileDropdown = ({setShowDropDown}) => {
             onClick={logoutHandler}>Yes</Button>
           </DialogActions>
         </Dialog>
+
+         {
+                chatboat && <ChatboatModal setChatboat={setChatboat}/>
+              }
+
     </div>
   )
 }

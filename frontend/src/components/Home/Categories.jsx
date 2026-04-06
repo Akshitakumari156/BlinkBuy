@@ -35,11 +35,6 @@ const Categories = () => {
         getAllCategories();
     },[]);
 
-
- 
-    
-    
-
   return (
     <div className='mt-2 bg-gray-900 py-2'>
         {

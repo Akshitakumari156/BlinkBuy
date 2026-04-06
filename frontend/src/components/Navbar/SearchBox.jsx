@@ -22,7 +22,7 @@ const SearchBox = () => {
        return ;
      }
 
-     if(inputValue.length < 3){
+     if(inputValue.length < 2){
       return;
      }
 
@@ -71,7 +71,7 @@ const SearchBox = () => {
     </form>
 
       {
-       userInput.length > 2 && <div className="absolute  bg-gray-700 w-[761px] min-h-[50px] z-50 ">
+       userInput.length > 1 && <div className="absolute  bg-gray-700 w-[761px] min-h-[50px] z-50 ">
              
              {
                 loading ? (<div className='h-full flex items-center justify-center p-2'><Loader/></div>) 

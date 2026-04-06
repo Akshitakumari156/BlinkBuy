@@ -22,8 +22,8 @@ const Navbar = () => {
       <header className="bg-gray-900 px-3 py-2 flex items-center gap-6 justify-center border-b-[1px] border-gray-700">
         <Link to={"/"}>
           <h2 className="flex items-center font-bold text-3xl">
-            <p> Smart </p>
-            <p className="text-5xl text-yellow-400 ">X</p>
+            <p> Connecti </p>
+            <p className="text-5xl text-yellow-400 ">Fy</p>
           </h2>
         </Link>
         <SearchBox />
@@ -96,7 +96,12 @@ const Navbar = () => {
                   location.pathname === "/upload-product" ? "bg-slate-800" : ""
                 }`}
             onClick={() => {
-              naviagte("/upload-product");
+              if(!token){
+                naviagte("/login");
+              }
+             else{
+               naviagte("/upload-product");
+             }
             }}
           >
             <FaPlus size={23} />

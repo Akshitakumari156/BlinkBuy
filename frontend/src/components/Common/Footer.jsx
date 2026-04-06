@@ -8,6 +8,7 @@ import {
   FaEnvelope,
   FaPhoneAlt,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -30,11 +31,31 @@ const Footer = () => {
         <div className="space-y-4">
           <h4 className="text-white font-semibold text-lg">Quick Links</h4>
           <ul className="space-y-2 text-sm">
-            <li className="hover:text-indigo-400 cursor-pointer">Home</li>
-            <li className="hover:text-indigo-400 cursor-pointer">Browse Ads</li>
-            <li className="hover:text-indigo-400 cursor-pointer">Post an Ad</li>
-            <li className="hover:text-indigo-400 cursor-pointer">About Us</li>
-            <li className="hover:text-indigo-400 cursor-pointer">Contact Us</li>
+            <li className="hover:text-indigo-400 cursor-pointer">
+              <Link to={"/"}>
+              Home
+              </Link>
+            </li>
+            <li className="hover:text-indigo-400 cursor-pointer">
+              <Link to={"/"}>
+               Browse Ads
+               </Link>
+            </li>
+            <li className="hover:text-indigo-400 cursor-pointer">
+               <Link to={"/upload-product"}>
+              Post an Ad
+               </Link>
+            </li>
+            <li className="hover:text-indigo-400 cursor-pointer">
+               <Link to={"/about-us"}>
+            About Us
+               </Link>
+            </li>
+            <li className="hover:text-indigo-400 cursor-pointer">
+                <Link to={"/contact-us"}>
+          Contact Us
+               </Link>
+            </li>
           </ul>
         </div>
 
@@ -43,7 +64,10 @@ const Footer = () => {
           <h4 className="text-white font-semibold text-lg">Support</h4>
           <ul className="space-y-2 text-sm">
             <li className="hover:text-indigo-400 cursor-pointer">
-              Help Center
+              <Link to={"/help"}>
+               Help Center
+              </Link>
+             
             </li>
             <li className="hover:text-indigo-400 cursor-pointer">
               Safety Tips

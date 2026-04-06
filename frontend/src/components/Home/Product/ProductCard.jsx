@@ -7,20 +7,31 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addProductToWishlist, removeProductFromWislist } from '../../../redux/slices/wishlist';
 import { IoHeart } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 
 const ProductCard = ({product}) => {
-
+   
+  const {token}       = useSelector((state)=> state.auth);
   const {allProducts} = useSelector((state)=> state.wishlist);
   const navigate = useNavigate();
 
   const dispatch = useDispatch(); 
 
   const addProductToWishlistHandler =  ()=>{
+    if(!token){
+      toast.error("please login to add this product in wishlist");
+      return ;
+    }
     dispatch(addProductToWishlist(product));
   }
 
   const removeProductHandler = ()=>{
+
+     if(!token){
+      toast.error("please login to remove this product from wishlist");
+      return ;
+    }
     dispatch(removeProductFromWislist(product));
   }
   
