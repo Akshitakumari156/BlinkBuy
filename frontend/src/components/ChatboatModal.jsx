@@ -13,7 +13,7 @@ const ChatboatModal = ({ setChatboat }) => {
   const [allMessages, setAllMessages] = useState([]);
 
   const { token } = useSelector((state) => state.auth);
-
+  console.log("Current Redux Token:", token);
   const messageRef = useRef(null);
 
   // ✅ Auto Scroll
@@ -86,7 +86,7 @@ const ChatboatModal = ({ setChatboat }) => {
         <div className='px-6 py-3 flex justify-between items-center border-b border-gray-600'>
           <div className='flex gap-2 items-center'>
             <img src={aiLogo} alt="ai" className='h-8' />
-            <p className='font-semibold text-xl text-white'>SmartX Bot</p>
+            <p className='font-semibold text-xl text-white'>ConnectiFy Bot</p>
           </div>
 
           <RxCross2

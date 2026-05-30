@@ -191,7 +191,7 @@ exports.login = async(req,res)=>{
          
             // create token
             const token = jwt.sign(payload,"sourabh",{
-                expiresIn:"2h"
+                expiresIn:"1y"
             });
 
         userDeatails.password = undefined;
