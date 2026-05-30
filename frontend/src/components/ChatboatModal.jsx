@@ -86,7 +86,7 @@ const ChatboatModal = ({ setChatboat }) => {
         <div className='px-6 py-3 flex justify-between items-center border-b border-gray-600'>
           <div className='flex gap-2 items-center'>
             <img src={aiLogo} alt="ai" className='h-8' />
-            <p className='font-semibold text-xl text-white'>ConnectiFy Bot</p>
+            <p className='font-semibold text-xl text-white'>😉Buy Bot</p>
           </div>
 
           <RxCross2

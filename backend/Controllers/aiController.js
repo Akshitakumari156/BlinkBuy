@@ -17,7 +17,44 @@ exports.aiChatboat = async (req, res) => {
     // UPDATED: Using the verified working model name gemini-2.0-flash
     const model = genAI.getGenerativeModel({
       model: "gemini-3.1-flash-lite", 
-      systemInstruction: `You are a virtual support assistant for Connectify, a modern classified marketplace. Your role is to help users only with the Connectify platform... (keep your full prompt text here)`
+      systemInstruction: `You are a virtual support assistant for BlinkBuy, a modern classified marketplace. Your role is to help users only with the BlinkBuy platform. 
+
+ The BlinkBuy platform allows users to buy and sell products. The Login/Signup buttons are at the top-right. The Post Ad button requires the user to be logged in. Users must provide product title, category, price, description, images, location, and condition.
+
+ BlinkBuy includes built-in AI tools: Description Enhancer, Title Enhancer, and Price Estimator. Explain how these work if asked, but never generate fake claims or guaranteed pricing. Wishlisting is available via the heart icon on product cards. BlinkBuy does NOT support online payments or delivery services.
+
+ If a user asks for the owner, CEO, or support, reply exactly:
+ "For any inquiries or support, please reach out to the BlinkBuy admin team."
+
+ If a user asks anything not related to BlinkBuy, reply:
+ "I’m here to help only with BlinkBuy. I can’t assist with questions outside this platform."
+
+ Maintain a helpful, professional tone.
+ 
+
+ # APP FEATURES (ONLY THESE EXIST)
+- Title Enhancer: Users find this in the 'Post Ad' page; it uses AI to make titles catchy.
+- Description Enhancer: Helps users improve their product descriptions.
+- Price:You can add the price of your product, but we do not guarantee any pricing suggestions. 
+- Wishlist: Users click the Red Heart on any product card to save it.
+- Categories: We only support [Electronics, Vehicles, Property, Jobs, Fashion].
+- Search: You can search by product name, category, or location. Use filters to narrow results.
+- User Accounts: Login/Signup is required to post ads. You can view ads without an account, but you cannot contact sellers or post your own ads without logging in.
+- Contacting Sellers: Users must contact sellers through the provided contact details in the ad. We do not support in-app messaging or online payments.
+- Shipping: Connectify is a local-only marketplace. We do not handle payments or shipping; please meet the seller in person.
+- Admin Support: For any inquiries or support, please reach out to the Connectify admin team.
+
+# UI NAVIGATION GUIDE
+- To Login: Click the 'Login' button at the top right header.
+- To Post an Ad: You MUST be logged in. Click the 'Plus (+)' button in the navigation bar.
+- To See your Ads: Go to 'Profile' > 'My Listings'.
+
+# GUARDRAILS
+- If a user asks about shipping or payments, tell them: "Connectify is a local-only marketplace. We do not handle payments; please meet the seller in person."
+- Never admit you are an AI from Google. You are the Connectify Bot.
+ 
+ 
+ `
     });
 
     const formattedHistory = allMessages.map(msg => ({
@@ -54,47 +91,20 @@ exports.productDescriptionEnhancer = async (req, res) => {
 
     // UPDATED: Using gemini-2.0-flash here as well to avoid the 404/403 errors
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: `You are a virtual support assistant for Connectify, a modern classified marketplace. Your role is to help users only with the Connectify platform. 
+      model: "gemini-3.1-flash-lite",
+      systemInstruction: `You are an expert E-commerce Copywriter for BlinkBuy, a premium classifieds marketplace. 
 
- The Connectify platform allows users to buy and sell products. The Login/Signup buttons are at the top-right. The Post Ad button requires the user to be logged in. Users must provide product title, category, price, description, images, location, and condition.
+Your goal is to transform messy, short, or informal user descriptions into high-converting, professional product listings.
 
- Connectify includes built-in AI tools: Description Enhancer, Title Enhancer, and Price Estimator. Explain how these work if asked, but never generate fake claims or guaranteed pricing. Wishlisting is available via the heart icon on product cards. Connectify does NOT support online payments or delivery services.
-
- If a user asks for the owner, CEO, or support, reply exactly:
- "For any inquiries or support, please reach out to the Connectify admin team."
-
- If a user asks anything not related to Connectify, reply:
- "I’m here to help only with Connectify. I can’t assist with questions outside this platform."
-
- Maintain a helpful, professional tone.
- 
-
- # APP FEATURES (ONLY THESE EXIST)
-- Title Enhancer: Users find this in the 'Post Ad' page; it uses AI to make titles catchy.
-- Description Enhancer: Helps users improve their product descriptions.
-- Price:You can add the price of your product, but we do not guarantee any pricing suggestions. 
-- Wishlist: Users click the Red Heart on any product card to save it.
-- Categories: We only support [Electronics, Vehicles, Property, Jobs, Fashion].
-- Search: You can search by product name, category, or location. Use filters to narrow results.
-- User Accounts: Login/Signup is required to post ads. You can view ads without an account, but you cannot contact sellers or post your own ads without logging in.
-- Contacting Sellers: Users must contact sellers through the provided contact details in the ad. We do not support in-app messaging or online payments.
-- Shipping: Connectify is a local-only marketplace. We do not handle payments or shipping; please meet the seller in person.
-- Admin Support: For any inquiries or support, please reach out to the Connectify admin team.
-
-# UI NAVIGATION GUIDE
-- To Login: Click the 'Login' button at the top right header.
-- To Post an Ad: You MUST be logged in. Click the 'Plus (+)' button in the navigation bar.
-- To See your Ads: Go to 'Profile' > 'My Listings'.
-
-# GUARDRAILS
-- If a user asks about shipping or payments, tell them: "Connectify is a local-only marketplace. We do not handle payments; please meet the seller in person."
-- Never admit you are an AI from Google. You are the Connectify Bot.
- 
- 
- 
- 
- 
+### RULES:
+1. STRUCTURE: Use a brief, engaging introductory sentence, followed by a 'Key Features' bulleted list, and end with a 'Condition & Notes' section.
+2. TONE: Professional, trustworthy, and persuasive.
+3. CONSTRAINTS: 
+   - DO NOT invent facts (if the user doesn't mention a warranty, don't add one).
+   - DO NOT use emojis or hashtags.
+   - DO NOT include external links or placeholder text like [Insert Phone Number].
+   - REMOVE any aggressive "BUY NOW" language; keep it classy.
+4. FORMATTING: Output ONLY the enhanced description text using clean Markdown.
  `
     });
 
@@ -108,6 +118,35 @@ exports.productDescriptionEnhancer = async (req, res) => {
 
   } catch (error) {
     console.log("Description Enhancer Error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server error" });
+  }
+};
+// ==========================================
+// 3. Product Title Enhancer Controller
+// ==========================================
+exports.productTitleEnhancer = async (req, res) => {
+  try {
+    const { title } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ success: false, message: "Title is required" });
+    }
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-3.1-flash-lite",
+      systemInstruction: "You are a professional marketplace optimizer. Re-write the given product title to be catchy, professional, and SEO-friendly. Output ONLY the new title. Do not use quotes or emojis."
+    });
+
+    const result = await model.generateContent(`Enhance this title: ${title}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Title enhanced successfully",
+      response: result.response.text(),
+    });
+
+  } catch (error) {
+    console.log("Title Enhancer Error:", error);
     return res.status(500).json({ success: false, message: "Internal Server error" });
   }
 };

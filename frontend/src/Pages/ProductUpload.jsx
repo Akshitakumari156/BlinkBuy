@@ -168,6 +168,29 @@ const ProductUpload = () => {
    }
   }
 
+  const productTitleEnhancerHandler = async () => {
+  if (loading || !formdata.productName) {
+    toast.error("Please enter a product name first");
+    return;
+  }
+
+  try {
+    setLoading(true); // You can create a titleLoading state if you prefer
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/productTitleEnhancer`, 
+      { title: formdata.productName }, 
+      { headers: { Authorization: 'Bearer ' + token } }
+    );
+
+    if (response?.data?.success) {
+      setFormData({ ...formdata, productName: response?.data?.response });
+      toast.success("Title enhanced!");
+    }
+    setLoading(false);
+  } catch (error) {
+    setLoading(false);
+    toast.error("Failed to enhance title");
+  }
+};
 
   const productDescriptionEnhancerHandler = async()=>{
     if(loading){
@@ -269,6 +292,7 @@ const ProductUpload = () => {
                     src={aiLogo}
                     alt="aiLogo"
                     className="h-12 object-cover cursor-pointer"
+                    onClick={productTitleEnhancerHandler}
                   />
                 </InputAdornment>
               ),

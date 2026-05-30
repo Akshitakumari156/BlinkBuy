@@ -22,8 +22,8 @@ const Navbar = () => {
       <header className="bg-gray-900 px-3 py-2 flex items-center gap-6 justify-center border-b-[1px] border-gray-700">
         <Link to={"/"}>
           <h2 className="flex items-center font-bold text-3xl">
-            <p> Connecti </p>
-            <p className="text-5xl text-yellow-400 ">Fy</p>
+            <p> 😉 </p>
+            <p className="text-5xl text-yellow-400 ">Buy</p>
           </h2>
         </Link>
         <SearchBox />

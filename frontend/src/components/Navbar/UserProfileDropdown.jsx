@@ -65,7 +65,7 @@ const UserProfileDropdown = ({setShowDropDown}) => {
           setChatboat(true);
          }}>
                     <img src={aiLogo} alt="ai" className='h-6' />
-                    <p className='font-semibold text-[18px]'>SmartX Bot</p>
+                    <p className='font-semibold text-[18px]'>😉Buy Bot</p>
                   </div>
 
         <div className='flex items-center gap-4 cursor-pointer'
