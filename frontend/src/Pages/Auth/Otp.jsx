@@ -19,7 +19,9 @@ const Otp = () => {
         const data = { email: formData?.email };
         const toastId = toast.loading("sending otp...");
         try {
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/create-otp`, data);
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/create-otp`, data,{
+              withCredentials: true
+            });
             if (!response.data.success) throw new Error("Error occur during resend");
             toast.dismiss(toastId);
             toast.success(response.data.message);
