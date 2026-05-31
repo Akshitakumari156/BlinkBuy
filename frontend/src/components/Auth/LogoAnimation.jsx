@@ -24,8 +24,8 @@ const LogoAnimation = () => {
   return (
     <div>
       <h1 className='text-6xl font-bold flex items-center'> 
-          <p className='smart'>Smart</p>
-         <p className='text-yellow-400 text-9xl inline-block xLogo'>X</p>
+          <p className='smart'>😉</p>
+         <p className='text-yellow-400 text-9xl inline-block xLogo'>Buy</p>
        </h1>
     </div>
   )

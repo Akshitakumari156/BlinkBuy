@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import Loader from '../components/Common/Loader';
 import ProductCard from '../components/Home/Product/ProductCard';
 import SkelatonLoading from '../components/Common/SkelatonLoading';
+import Footer from '../components/Common/Footer';
 
 const Home = () => {
 
@@ -192,7 +193,7 @@ const Home = () => {
         )
        }
      </div>
-
+     <Footer/>
     </div>
   )
 }

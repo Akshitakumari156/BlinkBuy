@@ -5,39 +5,49 @@ import gsap from "gsap";
 
 const SplashScreen = () => {
 
+  useGSAP(() => {
+    // Using xPercent instead of fixed pixels makes the animation 
+    // smooth regardless of screen width (Mobile vs PC)
+    gsap.from(".spAnimation1", {
+      xPercent: -200,
+      opacity: 0,
+      duration: 1,
+      ease: "power2.out",
+      delay: 0.6,
+    });
 
-    useGSAP(()=>{
-    
-        gsap.from(".spAnimation1",{
-            x:-800,
-            delay:0.6,
-        });
-
-        gsap.from(".spAnimation2",{
-            x:800,
-            delay:0.6,
-        });
-
-    })
-
+    gsap.from(".spAnimation2", {
+      xPercent: 200,
+      opacity: 0,
+      duration: 1,
+      ease: "power2.out",
+      delay: 0.6,
+    });
+  })
 
   return (
     <div
-      className="bg-[#0B0B0F] text-white h-screen w-screen
-    overflow-x-hidden overflow-y-auto flex items-center justify-center flex-col gap-6"
+      className="bg-[#0B0B0F] text-white h-screen w-full
+    overflow-hidden flex items-center justify-center flex-col gap-8 px-4"
     >
-      <div>
-        <LogoAnimation/>
+      {/* LOGO AREA - Scales naturally via LogoAnimation component */}
+      <div className="scale-75 md:scale-100">
+        <LogoAnimation />
       </div>
-      <div className="flex items-center gap-4 text-xl text-gray-400 ">
-        <div className="flex gap-[2px] spAnimation1">
-            <p>Post Ads </p>
-            <div className="bg-yellow-400 h-1 w-1 rounded-full mt-[18px]"></div>
-            </div> 
-          <div className="flex gap-[2px] spAnimation2">
-            <p>Find Deals </p>
-            <div className="bg-yellow-400 h-1 w-1 rounded-full mt-[18px]"></div>
-            </div> 
+
+      {/* TEXT AREA - Stacked on tiny phones, Row on Tablet/PC */}
+      <div className="flex flex-col xs:flex-row items-center gap-2 xs:gap-6 text-lg md:text-2xl text-gray-400 font-medium tracking-wide">
+        
+        <div className="flex items-center gap-1.5 spAnimation1">
+          <p className="whitespace-nowrap">Post Ads</p>
+          <div className="bg-yellow-400 h-1.5 w-1.5 rounded-full mt-1"></div>
+        </div>
+
+        <div className="flex items-center gap-1.5 spAnimation2">
+          <p className="whitespace-nowrap">Find Deals</p>
+          <div className="bg-yellow-400 h-1.5 w-1.5 rounded-full mt-1"></div>
+        </div>
+
       </div>
     </div>
   );

@@ -54,7 +54,8 @@ exports.sendMessage = async(req,res)=>{
 
        // socket.io implement
        const receiverSocketId = getReceiverSocketId(receiverId);
-
+       console.log("Trying to send to receiverId:", receiverId);
+       console.log("Found receiverSocketId:", receiverSocketId);
        if(receiverSocketId){
         io.to(receiverSocketId).emit("new-message",newMessage);
        }
@@ -107,12 +108,19 @@ exports.findConversation = async(req,res)=>{
 
         console.log("conversation",conversation);
         
-
+        let receiverDetails = null;
+        if (conversation) {
+            // Find the member whose ID matches the receiverId
+            receiverDetails = conversation.members.find(
+                (member) => member._id.toString() === receiverId.toString()
+            );
+        }
         // return response
         return res.status(200).json({
             success:true,
             message:"Conversation find successfully",
             conversation:conversation === null ? [] : conversation.allMessages,
+            receiverDetails:receiverDetails,
         })
         
       } catch (error) {

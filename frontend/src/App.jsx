@@ -23,8 +23,8 @@ import SearchProducts from './Pages/Product/SearchProducts'
 import chatboatLogo from "./assets/chatboatLogo.png";
 import ChatboatModal from './components/ChatboatModal'
 import MyProducts from './Pages/Product/MyProducts'
-
-
+import Chat from './Pages/Chat'
+import Inbox from './Pages/Inbox'
 const App = () => {
 
   const [showSplash,setShowSplash] = useState(true);
@@ -81,6 +81,10 @@ const App = () => {
     },
     {
       path:"/MyProducts",element:<><Navbar/><MyProducts/><Footer/></>
+    },{
+      path:"/chat/:receiverId", element:<Chat />
+    },{
+      path:"/inbox", element:<><Navbar/><Inbox/><Footer/></>
     }
 
   ])

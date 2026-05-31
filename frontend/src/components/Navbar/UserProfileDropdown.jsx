@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link,useNavigate } from 'react-router-dom'
 import { IoSettingsOutline } from "react-icons/io5";
 import { LuBadgeHelp } from "react-icons/lu";
 import { MdLogout } from "react-icons/md";
@@ -12,13 +12,12 @@ import { IoChatboxOutline } from "react-icons/io5";
 import toast from 'react-hot-toast';
 import aiLogo from "../../assets/gemini-color.png";
 import ChatboatModal from '../ChatboatModal';
-
 const UserProfileDropdown = ({setShowDropDown}) => {
 
     const [open,setOpen] = useState(false);
     const [chatboat,setChatboat] = useState(false);
     const dispatch = useDispatch();
-
+   const navigate = useNavigate();
     const showDialog = ()=>{
         setOpen(true);
     }
@@ -27,20 +26,16 @@ const UserProfileDropdown = ({setShowDropDown}) => {
         setShowDropDown(false);
     }
     const logoutHandler = ()=>{
+       console.log("logout clicked");
         dispatch(removeToken());
         dispatch(setUserData(null));
         setOpen(false);
         setShowDropDown(false);
         toast.success("Logout Successfully");
+        navigate("/login");
     }
   return (
     <div className='px-4 py-1 pb-3 flex flex-col gap-4'>
-
-       <Link to="/chat-users" className='flex items-center gap-4 '
-        onClick={()=>{setShowDropDown(false)}}>
-        <IoChatboxOutline size={25}/>
-         <p className='font-semibold text-[18px]'>Chat</p>
-        </Link>
 
         <Link to="/settings" className='flex items-center gap-4 '
         onClick={()=>{setShowDropDown(false)}}>

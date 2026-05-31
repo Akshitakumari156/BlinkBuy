@@ -1,7 +1,6 @@
-import { Button, InputAdornment, TextField, Typography } from "@mui/material";
+import { Button, InputAdornment, TextField, Typography, Box } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { FaBrain } from "react-icons/fa6";
-import { FaFileCode } from "react-icons/fa";
+import { FaFileCode, FaCloudUploadAlt } from "react-icons/fa";
 import axios from "axios";
 import aiLogo from "../assets/gemini-color.png";
 import { useSelector } from "react-redux";
@@ -10,8 +9,8 @@ import { RxCross2 } from "react-icons/rx";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const ProductUpload = () => {
-  const {userData} =  useSelector((state)=> state.user);
-  const {token} = useSelector((state)=> state.auth);
+  const { userData } = useSelector((state) => state.user);
+  const { token } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
   const [allCategories, setAllCategories] = useState([]);
   const [condition, setCondition] = useState("Used");
@@ -23,563 +22,306 @@ const ProductUpload = () => {
     location: "",
     contactNumber: "",
   });
-  const [images,setImages] = useState([]);
-  const [descLoading,setDescLoading] = useState(false);
+  const [images, setImages] = useState([]);
+  const [descLoading, setDescLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const productData = location?.state;
 
-  console.log("productData",productData);
-  
-
-
   const changeHandler = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e)=>{
-   const selectedFiles = Array.from(e.target.files);
-      setImages(selectedFiles); 
-  }
+  const handleImageChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setImages(selectedFiles);
+  };
 
-
-  const imageRemoveHandler = (imageIndex)=>{
-  const remainImages =   images.filter((img,index)=> index!==imageIndex);
-  setImages(remainImages);
-  }
-  
-
+  const imageRemoveHandler = (imageIndex) => {
+    const remainImages = images.filter((img, index) => index !== imageIndex);
+    setImages(remainImages);
+  };
 
   const getAllCategories = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/getAllCategories`
-      );
-
-      if (!response?.data?.success) {
-        throw new Error("Error occur during fetching all categories");
-      }
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/getAllCategories`);
+      if (!response?.data?.success) throw new Error("Error");
       setAllCategories(response?.data?.allCategories);
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      console.log(error);
       toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
 
-
-
-  const submitHandler = async(e)=>{
+  const submitHandler = async (e) => {
     e.preventDefault();
-
-    if(descLoading){
-      return ;
-    }
-
-    const formData =  new FormData();
-    formData.append("productName",formdata.productName);
-    formData.append("contactNumber",formdata.contactNumber);
-    formData.append("categoryId",formdata.category);
-    formData.append("location",formdata.location);
-    formData.append("price",formdata.price);
-    formData.append("condition",condition);
-    formData.append("sellerId",userData?._id);
-    formData.append("description",formdata.description);
-
-    for(let i = 0; i<images.length; i++){
-       formData.append("images",images[i]);
-    }
+    if (descLoading) return;
+    const formData = new FormData();
+    formData.append("productName", formdata.productName);
+    formData.append("contactNumber", formdata.contactNumber);
+    formData.append("categoryId", formdata.category);
+    formData.append("location", formdata.location);
+    formData.append("price", formdata.price);
+    formData.append("condition", condition);
+    formData.append("sellerId", userData?._id);
+    formData.append("description", formdata.description);
+    for (let i = 0; i < images.length; i++) { formData.append("images", images[i]); }
 
     const toastId = toast.loading("Uploading product...");
     try {
-        setLoading(true);
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/upload-product`,formData,{
-          headers:{
-            Authorization:'Bearer '+token,
-          }
-        });
-
-        if(!response?.data?.success){
-            throw new Error("Error occur during uploading product");
-        }
-        toast.dismiss(toastId);
-        navigate("/myproducts");
-        toast.success(response?.data?.message);
-        setLoading(false);     
+      setLoading(true);
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/upload-product`, formData, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      toast.dismiss(toastId);
+      navigate("/myproducts");
+      toast.success(response?.data?.message);
+      setLoading(false);
     } catch (error) {
-       setLoading(false);
-       toast.dismiss(toastId);
-       console.log(error);
-       toast.error(error.response?.data?.message || "Something went wrong");
-        
+      setLoading(false);
+      toast.dismiss(toastId);
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
+  };
 
-  
-  }
-
-  const productUpdateHandler = async(e)=>{
+  const productUpdateHandler = async (e) => {
     e.preventDefault();
-    
-     if(descLoading){
-      return ;
+    if (descLoading) return;
+    const toastId = toast.loading("Updating...");
+    try {
+      setLoading(true);
+      const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/editProduct`, formdata, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      toast.dismiss(toastId);
+      navigate("/myproducts");
+      toast.success(response?.data?.message);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      toast.dismiss(toastId);
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
-
-    if(formdata.category === productData?.category && formdata.contactNumber === productData?.contactNumber &&
-       formdata.description === productData?.description && formdata.location === productData?.location &&
-       formdata.price === productData?.price && formdata.productName === productData?.productName && 
-       condition === productData?.condition){
-        toast.error("Changes not found");
-        return ;
-       }
-
-    const toastId = toast.loading("Updating product...");
-
-   try {
-
-    setLoading(true);
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/editProduct`,formdata,{
-      headers:{
-        Authorization:'Bearer '+token,
-      }
-    });
-
-    if(!response?.data?.success){
-      throw new Error("Error occur during updating product");
-    }
-
-    toast.dismiss(toastId);
-    navigate("/myproducts");
-    toast.success(response?.data?.message);
-    setLoading(false);  
-   } catch (error) {
-    console.log(error);
-    toast.dismiss(toastId);
-    setLoading(false);
-    toast.error(error.response?.data?.message || "Something went wrong");  
-   }
-  }
+  };
 
   const productTitleEnhancerHandler = async () => {
-  if (loading || !formdata.productName) {
-    toast.error("Please enter a product name first");
-    return;
-  }
+    if (loading || !formdata.productName) { toast.error("Enter name first"); return; }
+    try {
+      setLoading(true);
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/productTitleEnhancer`, { title: formdata.productName }, { headers: { Authorization: 'Bearer ' + token } });
+      if (response?.data?.success) setFormData({ ...formdata, productName: response?.data?.response });
+      setLoading(false);
+    } catch (error) { setLoading(false); }
+  };
 
-  try {
-    setLoading(true); // You can create a titleLoading state if you prefer
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/productTitleEnhancer`, 
-      { title: formdata.productName }, 
-      { headers: { Authorization: 'Bearer ' + token } }
-    );
-
-    if (response?.data?.success) {
-      setFormData({ ...formdata, productName: response?.data?.response });
-      toast.success("Title enhanced!");
-    }
-    setLoading(false);
-  } catch (error) {
-    setLoading(false);
-    toast.error("Failed to enhance title");
-  }
-};
-
-  const productDescriptionEnhancerHandler = async()=>{
-    if(loading){
-      return ;
-    }
-
-    if(formdata.description.length < 10){
-        toast.error("Product description is too short");
-         return ;
-      }
-
-      const data = {
-        description:formdata.description,
-      }
+  const productDescriptionEnhancerHandler = async () => {
+    if (loading || formdata.description.length < 10) { toast.error("Too short"); return; }
     try {
       setDescLoading(true);
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/productDescriptionEnhancer`,
-        data,{
-          headers:{
-            Authorization:'Bearer '+token,
-          }
-        }
-      );
-
-      if(!response?.data?.success){
-        throw new Error("Error occur during enhancing the product description");
-      }
-
-      setFormData({...formdata,description:response?.data?.response});
-
-      setDescLoading(false);  
-    } catch (error) {
-      console.log(error);
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/productDescriptionEnhancer`, { description: formdata.description }, { headers: { Authorization: 'Bearer ' + token } });
+      setFormData({ ...formdata, description: response?.data?.response });
       setDescLoading(false);
-      toast.error(error.response?.data?.message || "Something went wrong");     
-    }
-  }
-    
-    useEffect(() => {
-    getAllCategories();
-  }, []);
+    } catch (error) { setDescLoading(false); }
+  };
 
-  useEffect(()=>{
-    if(productData){
-    setFormData(productData);
-    setCondition(productData?.condition);
-    }
-  },[productData])
+  useEffect(() => { getAllCategories(); }, []);
+  useEffect(() => { if (productData) { setFormData(productData); setCondition(productData?.condition); } }, [productData]);
 
   return (
-    <div>
-      <Typography
-        variant="h5"
-        sx={{
-          marginTop: "16px",
-          textTransform: "uppercase",
-          fontWeight: 600,
-          marginBottom: "16px",
-        }}
-        align="center"
-      >
-      {
-        productData ? "Update" : "Post"
-      }   your Ad
-      </Typography>
-      <div className="w-[80%] mx-auto border rounded-md border-gray-700 p-4">
-        <form className="flex flex-col gap-4" onSubmit={productData ? productUpdateHandler : submitHandler}>
-          <Typography
-            variant="h6"
-            sx={{
-              textTransform: "uppercase",
-              fontWeight: 400,
-              marginBottom: "8px",
-            }}
-          >
-            Include some details
-          </Typography>
+    <Box className="min-h-screen bg-[#0B0B0F] text-white py-10 px-4">
+      {/* Title Section */}
+      <div className="max-w-4xl mx-auto text-center mb-10">
+        <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>
+          {productData ? "Update" : "Create"} <span className="text-indigo-500">Listing</span>
+        </Typography>
+        <p className="text-gray-400 mt-2">Fill in the details below to reach thousands of local buyers.</p>
+      </div>
 
-          {/* product name  */}
-          <TextField
-            type="text"
-            variant="filled"
-            fullWidth
-            inputProps={{
-              style: {
-                color: "white",
-                background: "#1F2937",
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment
-                  position="end"
-                  sx={{
-                    color: "white",
-                  }}
-                >
-                  <img
-                    src={aiLogo}
-                    alt="aiLogo"
-                    className="h-12 object-cover cursor-pointer"
-                    onClick={productTitleEnhancerHandler}
-                  />
-                </InputAdornment>
-              ),
-            }}
-            label="Product Name"
-            placeholder="Enter your product name"
-            InputLabelProps={{
-              sx: {
-                color: "white",
-                "&.Mui-focused": {
-                  color: "white",
-                },
-              },
-            }}
-            required
-            name="productName"
-            value={formdata.productName}
-            onChange={changeHandler}
-          />
+      {/* Main Form Container */}
+      <div className="max-w-3xl mx-auto bg-[#12121A] border border-gray-800 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
+        {/* Decorative Background Glow */}
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/10 blur-[100px] rounded-full"></div>
+        
+        <form className="flex flex-col gap-8 relative z-10" onSubmit={productData ? productUpdateHandler : submitHandler}>
+          
+          {/* Section 1: Basic Info */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
+              <h3 className="text-lg font-semibold uppercase tracking-wider">Item Details</h3>
+            </div>
 
-          {/* product description */}
-          <div className="relative">
-            <label>
-              <div className="flex items-center gap-4">
-                <p className="text-[18px] ">
-                  Description <sup>*</sup>{" "}
-                </p>
-              </div>
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Product Title"
+              name="productName"
+              value={formdata.productName}
+              onChange={changeHandler}
+              required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <button type="button" onClick={productTitleEnhancerHandler} className="hover:scale-110 transition-transform">
+                      <img src={aiLogo} alt="AI" className="h-9 w-9 object-contain" />
+                    </button>
+                  </InputAdornment>
+                ),
+              }}
+              sx={textFieldStyles}
+            />
+
+            <div className="relative">
               <textarea
-                className="bg-gray-800 rounded-sm w-full outline-none p-2"
-                placeholder="Include condition, features and reason for selling"
-                rows={4}
-                onChange={changeHandler}
+                className="w-full bg-[#1F2937]/50 border border-gray-700 rounded-2xl p-4 text-white outline-none focus:border-indigo-500 transition-all min-h-[150px] placeholder:text-gray-500"
+                placeholder="Describe your item (condition, features, defects...)"
                 name="description"
                 value={formdata.description}
-              ></textarea>
-            </label>
-            {
-
-                descLoading ? ( <i class="fa-solid fa-spinner absolute right-2 bottom-4 animate-spin"></i>)
-                : 
-                (<img
-              src={aiLogo}
-              alt="aiLogo"
-              className="h-8 object-cover cursor-pointer absolute right-2 bottom-4"
-              onClick={productDescriptionEnhancerHandler}
-            />)
-
-            }
-           
-          </div>
-
-          {/* location  */}
-          <TextField
-            type="text"
-            variant="filled"
-            fullWidth
-            inputProps={{
-              style: {
-                color: "white",
-                background: "#1F2937",
-              },
-            }}
-            label="Location"
-            placeholder="Enter your location"
-            InputLabelProps={{
-              sx: {
-                color: "white",
-                "&.Mui-focused": {
-                  color: "white",
-                },
-              },
-            }}
-            required
-            onChange={changeHandler}
-            value={formdata.location}
-            name="location"
-          />
-
-          {/* contact number  */}
-
-          <TextField
-            type="number"
-            variant="filled"
-            fullWidth
-            inputProps={{
-              style: {
-                color: "white",
-                background: "#1F2937",
-              },
-            }}
-            label="Contact Number"
-            placeholder="Enter your contact number"
-            InputLabelProps={{
-              sx: {
-                color: "white",
-                "&.Mui-focused": {
-                  color: "white",
-                },
-              },
-            }}
-            required
-            onChange={changeHandler}
-            value={formdata.contactNumber}
-            name="contactNumber"
-          />
-
-          {/* set a price  */}
-          <div>
-            <Typography
-              variant="h6"
-              sx={{
-                textTransform: "uppercase",
-                fontWeight: 400,
-                marginTop: "8px",
-              }}
-            >
-              Set a price
-            </Typography>
-
-            {/* price  */}
-            <TextField
-              type="number"
-              variant="filled"
-              fullWidth
-              inputProps={{
-                style: {
-                  color: "white",
-                  background: "#1F2937",
-                },
-              }}
-              label="Product Price"
-              placeholder="Enter your product price"
-              InputLabelProps={{
-                sx: {
-                  color: "white",
-                  "&.Mui-focused": {
-                    color: "white",
-                  },
-                },
-              }}
-              required
-              onChange={changeHandler}
-                value={formdata.price}
-                name='price'
-            />
-          </div>
-
-          {/* categories */}
-          <label>
-            <Typography
-              variant="h6"
-              sx={{
-                textTransform: "uppercase",
-                fontWeight: 400,
-                marginBottom: "8x",
-              }}
-            >
-              Product Category
-            </Typography>
-            <select className="bg-gray-800 px-2 py-4 w-full outline-none border-none"
-            value={formdata.category}
-            name="category"
-            onChange={changeHandler}
-            >
-              <option >
-                Choose a Category <sup>*</sup>
-              </option>
-              {allCategories.map((category, index) => {
-                return (
-                  <option key={index} value={category?._id}>
-                    {category?.categoryName}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
-
-          {/* condition  */}
-          <div className="mt-2">
-            <Typography
-              variant="h6"
-              sx={{ textTransform: "uppercase", fontWeight: 400 }}
-            >
-              Condition of product
-            </Typography>
-
-            <div className="flex flex-row gap-4 bg-gray-800 w-fit px-6 py-2 rounded-full">
-              <div
-                className={`px-4 py-2 rounded-full cursor-pointer ${
-                  condition === "New" ? "bg-slate-950" : ""
-                }`}
-                onClick={() => {
-                  setCondition("New");
-                }}
-              >
-                New
-              </div>
-
-              <div
-                className={` px-4 py-2 rounded-full cursor-pointer ${
-                  condition !== "New" ? "bg-slate-950" : ""
-                }`}
-                onClick={() => {
-                  setCondition("Used");
-                }}
-              >
-                Used
+                onChange={changeHandler}
+                required
+              />
+              <div className="absolute right-3 bottom-3 flex items-center gap-2 bg-[#12121A] p-1 rounded-xl border border-gray-700">
+                <span className="text-[10px] text-gray-400 ml-2 uppercase font-bold">AI Enhance</span>
+                {descLoading ? (
+                  <div className="h-8 w-8 flex items-center justify-center"><i className="fa-solid fa-spinner animate-spin text-indigo-400"></i></div>
+                ) : (
+                  <img src={aiLogo} alt="AI" className="h-8 w-8 cursor-pointer hover:rotate-12 transition-all" onClick={productDescriptionEnhancerHandler} />
+                )}
               </div>
             </div>
           </div>
 
-          {/* images of product */}
-          {
-            !productData && <div>
-            <Typography
-              variant="h6"
-              sx={{
-                textTransform: "uppercase",
-                fontWeight: 400,
-                marginTop: "8px",
-              }}
-            >
-              Upload Photos{" "}
-            </Typography>
+          {/* Section 2: Pricing & Category */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TextField
+              type="number"
+              label="Price (₹)"
+              name="price"
+              value={formdata.price}
+              onChange={changeHandler}
+              required
+              sx={textFieldStyles}
+            />
+            <div className="flex flex-col gap-1">
+              <select
+                className="h-[56px] bg-[#1F2937]/50 border border-gray-700 rounded-xl px-4 text-white outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+                name="category"
+                value={formdata.category}
+                onChange={changeHandler}
+                required
+              >
+                <option value="" className="bg-gray-900">Select Category</option>
+                {allCategories.map((cat) => (
+                  <option key={cat._id} value={cat._id} className="bg-gray-900">{cat.categoryName}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-            <label>
-              <div className=" w-full border bg-gray-800 border-gray-600 flex flex-row flex-wrap items-center justify-center  gap-2 h-[200px] border-dashed  cursor-pointer">
-               
-               {
-                images.length < 1 && <div className=" flex-col gap-2 flex items-center justify-center h-full">
-                     <FaFileCode size={40} />
-                <p>Your files here or Browse to upload</p>
-                </div>
-               }
+          {/* Section 3: Location & Contact */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TextField
+              label="Location"
+              name="location"
+              value={formdata.location}
+              onChange={changeHandler}
+              required
+              sx={textFieldStyles}
+            />
+            <TextField
+              type="number"
+              label="Contact Number"
+              name="contactNumber"
+              value={formdata.contactNumber}
+              onChange={changeHandler}
+              required
+              sx={textFieldStyles}
+            />
+          </div>
 
+          {/* Section 4: Condition */}
+          <div className="bg-[#1F2937]/30 p-4 rounded-2xl border border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="text-gray-400 uppercase text-sm font-bold tracking-widest">Condition</span>
+            <div className="flex p-1 bg-gray-900 rounded-xl w-full sm:w-auto">
+              {["New", "Used"].map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setCondition(item)}
+                  className={`flex-1 sm:px-8 py-2 rounded-lg text-sm font-bold transition-all ${condition === item ? "bg-indigo-600 text-white shadow-lg" : "text-gray-500 hover:text-white"}`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
 
-             
-        
-               {
-                images.length > 0 && Array.from(images).map((img,index)=>{
-                    return <div className="border relative"key={index}  >
-                        <img src={URL.createObjectURL(img)} alt="preview"  className="h-32 w-32 object-cover"/>
-                        <div className="absolute top-0 right-0 bg-black"
-                        onClick={()=>{imageRemoveHandler(index)}}>
-                            <RxCross2/>
-                        </div>
-                    </div>
-                })
-              }
-         
+          {/* Section 5: Photo Upload */}
+          {!productData && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
+                <h3 className="text-lg font-semibold uppercase tracking-wider">Photos</h3>
               </div>
               
-          {
-                   images.length < 1 &&   <input type="file" className="hidden" multiple onChange={handleImageChange} />
+              <label className="group relative block w-full">
+                <div className="border-2 border-dashed border-gray-700 group-hover:border-indigo-500 bg-[#1F2937]/20 rounded-3xl p-8 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer">
+                  {images.length < 1 ? (
+                    <>
+                      <div className="bg-indigo-500/10 p-4 rounded-full text-indigo-500 group-hover:scale-110 transition-transform">
+                        <FaCloudUploadAlt size={40} />
+                      </div>
+                      <p className="text-gray-400 font-medium">Click to upload product images</p>
+                      <p className="text-gray-600 text-xs uppercase tracking-tighter">JPG, PNG up to 5MB</p>
+                    </>
+                  ) : (
+                    <div className="flex flex-wrap justify-center gap-4">
+                      {images.map((img, index) => (
+                        <div key={index} className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-indigo-500 shadow-xl">
+                          <img src={URL.createObjectURL(img)} alt="preview" className="w-full h-full object-cover" />
+                          <button onClick={(e) => { e.preventDefault(); imageRemoveHandler(index); }} className="absolute top-1 right-1 bg-black/70 p-1 rounded-full hover:bg-red-500 transition-colors">
+                            <RxCross2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <input type="file" className="hidden" multiple onChange={handleImageChange} />
+              </label>
+            </div>
+          )}
 
-              }
-              
-       
-
-            </label>
-          </div>
-          }
-          
-
-      <div>
-            <Button
-            fullWidth
-        
-            variant="contained"
-            size="large"
-            sx={{ backgroundColor: "yellow", color: "black" ,textTransform:"none",fontWeight:600}}
+          {/* Submit Button */}
+          <button
             type="submit"
+            disabled={loading}
+            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 text-white font-black uppercase tracking-[3px] rounded-2xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] transition-all active:scale-[0.98] flex items-center justify-center gap-4"
           >
-            {
-              productData ? "Update product" : "Post now"
-            }
-            
-          </Button>
-                   {
-            loading &&  <i class="fa-solid text-black  fa-spinner animate-spin -ml-8"></i>
-           }
-      </div>
+            {loading ? <i className="fa-solid fa-spinner animate-spin text-xl"></i> : (productData ? "Update Listing" : "Publish Ad")}
+          </button>
         </form>
       </div>
-    </div>
+    </Box>
   );
+};
+
+// Reusable MUI Styles for a consistent look
+const textFieldStyles = {
+  "& .MuiOutlinedInput-root": {
+    color: "white",
+    backgroundColor: "#1F293780",
+    borderRadius: "16px",
+    "& fieldset": { borderColor: "#374151" },
+    "&:hover fieldset": { borderColor: "#4F46E5" },
+    "&.Mui-focused fieldset": { borderColor: "#4F46E5" },
+  },
+  "& .MuiInputLabel-root": { color: "#9CA3AF" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#818CF8" },
 };
 
 export default ProductUpload;

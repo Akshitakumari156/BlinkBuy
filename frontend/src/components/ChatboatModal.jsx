@@ -7,36 +7,28 @@ import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 const ChatboatModal = ({ setChatboat }) => {
-
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [allMessages, setAllMessages] = useState([]);
 
   const { token } = useSelector((state) => state.auth);
-  console.log("Current Redux Token:", token);
   const messageRef = useRef(null);
 
-  // ✅ Auto Scroll
+  // ✅ Auto Scroll (Original Logic)
   useEffect(() => {
     messageRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [allMessages]);
 
-
-
-  // ✅ Send Message
+  // ✅ Send Message (Original Logic)
   const submitHandler = async (e) => {
     e.preventDefault();
-
     if (!message.trim()) return;
 
     const updatedMessages = [
       ...allMessages,
-      {
-        role: "user",
-        content: message,
-      },
+      { role: "user", content: message },
     ];
 
     setAllMessages(updatedMessages);
@@ -44,14 +36,11 @@ const ChatboatModal = ({ setChatboat }) => {
 
     try {
       setLoading(true);
-
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/aiChatboat`,
         { allMessages: updatedMessages },
         {
-          headers: {
-            Authorization: 'Bearer ' + token,
-          },
+          headers: { Authorization: 'Bearer ' + token },
         }
       );
 
@@ -61,12 +50,8 @@ const ChatboatModal = ({ setChatboat }) => {
 
       setAllMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: response.data.response,
-        },
+        { role: "assistant", content: response.data.response },
       ]);
-
     } catch (error) {
       console.log(error);
       toast.error(error.response?.data?.message || "Something went wrong");
@@ -75,80 +60,75 @@ const ChatboatModal = ({ setChatboat }) => {
     }
   };
 
-
-
   return (
-    <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50'>
+    /* Overlay: Standardized padding for mobile */
+    <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4'>
 
-      <div className='bg-gray-800 h-[80vh] w-[70vw] rounded-3xl flex flex-col'>
+      {/* Modal Container: 
+          Mobile: w-full, h-[90vh]
+          Tablet: w-[80vw]
+          PC: w-[450px] (Chatbots usually look better slim on PC)
+      */}
+      <div className='bg-gray-800 h-[85vh] md:h-[80vh] w-full sm:w-[80vw] md:w-[60vw] lg:w-[450px] rounded-3xl flex flex-col shadow-2xl overflow-hidden'>
 
         {/* Header */}
-        <div className='px-6 py-3 flex justify-between items-center border-b border-gray-600'>
+        <div className='px-4 md:px-6 py-4 flex justify-between items-center border-b border-gray-600 bg-gray-800 shrink-0'>
           <div className='flex gap-2 items-center'>
-            <img src={aiLogo} alt="ai" className='h-8' />
-            <p className='font-semibold text-xl text-white'>😉Buy Bot</p>
+            <img src={aiLogo} alt="ai" className='h-6 md:h-8' />
+            <p className='font-semibold text-lg md:text-xl text-white'>😉Buy Bot</p>
           </div>
 
           <RxCross2
-            size={28}
-            className="cursor-pointer text-white"
+            size={24}
+            className="cursor-pointer text-white hover:text-gray-400 transition-colors"
             onClick={() => setChatboat(false)}
           />
         </div>
 
-
-
-        {/* Messages */}
-        <div className='flex-1 overflow-y-auto p-4 flex flex-col gap-3'>
-
+        {/* Messages: flex-1 ensures this area takes up available height */}
+        <div className='flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-gray-800'>
           {allMessages.map((msg, index) => (
-
             <div
               key={index}
-              className={`px-3 py-2 rounded-xl text-white break-words
+              className={`px-4 py-2 rounded-2xl text-white break-words text-sm md:text-base
                 ${msg.role === "user"
-                  ? "self-end bg-gray-900 max-w-[60%]"
-                  : "self-start bg-gray-600 max-w-[75%]"
+                  ? "self-end bg-blue-600 rounded-tr-none max-w-[85%]"
+                  : "self-start bg-gray-700 rounded-tl-none max-w-[85%]"
                 }`}
             >
               {msg.content}
             </div>
-
           ))}
 
           {loading && (
-            <div className='self-start bg-gray-600 px-3 py-2 rounded-xl text-white'>
+            <div className='self-start bg-gray-700 px-4 py-2 rounded-2xl rounded-tl-none text-white text-sm animate-pulse'>
               Typing...
             </div>
           )}
-
           <div ref={messageRef}></div>
-
         </div>
 
-
-
-        {/* Input */}
+        {/* Input: Sticky at the bottom of the flex container */}
         <form
           onSubmit={submitHandler}
-          className='p-3 border-t border-gray-600 flex gap-2'
+          className='p-4 border-t border-gray-600 flex gap-2 bg-gray-800 shrink-0'
         >
-
           <input
             type="text"
-            placeholder='Enter message...'
+            placeholder='Ask anything...'
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className='flex-1 bg-gray-700 text-white rounded-full px-4 py-2 outline-none'
+            /* Responsive Input height/text */
+            className='flex-1 bg-gray-700 text-white rounded-full px-4 py-2.5 text-sm md:text-base outline-none border border-transparent focus:border-blue-500 transition-all'
           />
 
           <button
+            type="submit"
             disabled={loading}
-            className='bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full disabled:opacity-50'
+            className='bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full disabled:opacity-50 transition-all shrink-0'
           >
             <BsSend size={18} />
           </button>
-
         </form>
 
       </div>

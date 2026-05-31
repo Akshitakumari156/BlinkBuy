@@ -9,136 +9,138 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
 const ResetPassOtpVerify = () => {
-
     const location = useLocation();    
     const userEmail = location.state;
-    console.log("userEmail",userEmail);
-    const [otp,setOtp] = useState("");
-    const [loading,setLoading] = useState(false);
-    const [otpLoading,setOtpLoading] = useState(false);
+    const [otp, setOtp] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [otpLoading, setOtpLoading] = useState(false);
     const navigate = useNavigate();
 
-    useGSAP(()=>{
-      gsap.from(".otpAnimation",{
-    x:-300,
-    opacity:0,
-    delay:0.6,
-    duration:0.6,
-      });
-
+    useGSAP(() => {
+        gsap.from(".otpAnimation", {
+            /* 🟢 Change 1: Reduced x offset to prevent horizontal scroll on mobile */
+            x: -50,
+            opacity: 0,
+            delay: 0.3,
+            duration: 0.6,
+        });
     });
 
-     const resendOtpHandler = async()=>{  
-           const tostId = toast.loading("sending otp...");
-            try {
-                setLoading(true);
-                const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/sendOtpforgotPassword`,{email:userEmail});
-    
-                if(!response?.data?.success){
-                    throw new Error("Error occur during sending otp for reset password");
-                }
-    
-                toast.dismiss(tostId);
-                toast.success(response?.data?.message);
-                setLoading(false);
-                         
-            } catch (error) {
-                toast.dismiss(tostId);
-                setLoading(false);
-                toast.error(error.response?.data?.message || "Something went wrong");
-            }
-    
-        }
+    const resendOtpHandler = async () => {
+        const tostId = toast.loading("sending otp...");
+        try {
+            setLoading(true);
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/sendOtpforgotPassword`, { email: userEmail });
 
-    const otpVerifyHandler = async()=>{
-        if(otp.length < 4){
+            if (!response?.data?.success) {
+                throw new Error("Error occur during sending otp for reset password");
+            }
+
+            toast.dismiss(tostId);
+            toast.success(response?.data?.message);
+            setLoading(false);
+        } catch (error) {
+            toast.dismiss(tostId);
+            setLoading(false);
+            toast.error(error.response?.data?.message || "Something went wrong");
+        }
+    }
+
+    const otpVerifyHandler = async () => {
+        if (otp.length < 4) {
             toast.error("Please fill the otp");
             return;
         }
         const tostId = toast.loading("Verifying otp...");
         try {
             setOtpLoading(true);
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/forgotPasswordOtpVerifiy`,{
-                email:userEmail,
-                otp:otp
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/forgotPasswordOtpVerifiy`, {
+                email: userEmail,
+                otp: otp
             });
 
-            if(!response?.data?.success){
+            if (!response?.data?.success) {
                 throw new Error("Error occur during verifying otp for reset password")
             }
 
             toast.dismiss(tostId);
-            navigate("/reset-password",{state:{
-                email:userEmail,
-            }});
+            navigate("/reset-password", { state: { email: userEmail } });
             toast.success(response?.data?.message);
             setOtpLoading(false);
-            
         } catch (error) {
-            console.log(error);
             setOtpLoading(false);
             toast.dismiss(tostId);
             toast.error(error.response?.data?.message || "Something went wrong");
-            
-            
         }
     }
 
-  return (
-   <div className='flex flex-row w-[100%]'>
+    return (
+        /* 🟢 Change 2: flex-col for mobile, lg:flex-row for laptop. Responsive padding. */
+        <div className='flex flex-col lg:flex-row w-full min-h-[calc(100vh-80px)] items-center justify-center px-4 md:px-12 lg:px-24 py-10 gap-10'>
 
-    {/* otp  */}
-     <div className='flex items-center justify-center h-[calc(100vh-80px)] w-[50%] otpAnimation'>
-     <div className='flex items-center justify-center flex-col gap-1 '>
-           <h2 className='font-semibold text-2xl'>We sent you a  code</h2>
-        <p>Please enter it below to verify your email</p>
-        <p className='text-blue-600 text-xs'>
-            {
-               userEmail
-            }
-        </p>
+            {/* OTP Section */}
+            <div className='flex items-center justify-center w-full lg:w-[50%] otpAnimation'>
+                <div className='flex items-center justify-center flex-col gap-2 w-full max-w-md'>
+                    <h2 className='font-bold text-2xl md:text-3xl text-center'>We sent you a code</h2>
+                    <p className='text-gray-400 text-center'>Please enter it below to verify your email</p>
+                    <p className='text-blue-500 font-medium text-center break-all'>
+                        {userEmail}
+                    </p>
 
-        <div className='mt-6'>
-            <OTPInput
-      value={otp}
-      onChange={setOtp}
-      numInputs={4}
-      renderSeparator={<span>-</span>}
-      renderInput={(props) => <input {...props} 
-      className='w-20 h-12 text-4xl text-center text-white bg-gray-600 border
-      border-gray-400 rounded-md'/>}
-    />
+                    <div className='mt-8'>
+                        <OTPInput
+                            value={otp}
+                            onChange={setOtp}
+                            numInputs={4}
+                            renderSeparator={<span className='mx-2 md:mx-4 text-gray-500'>-</span>}
+                            /* 🟢 Change 3: Responsive widths (w-14 on mobile, w-20 on desktop) */
+                            renderInput={(props) => (
+                                <input {...props} 
+                                    className='w-14 h-14 md:w-20 md:h-20 text-3xl md:text-4xl text-center text-white bg-gray-800 border border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none transition-all'
+                                />
+                            )}
+                        />
+                    </div>
+
+                    <div className='w-full mt-8 relative flex items-center'>
+                        <Button 
+                            variant="contained" 
+                            size="large" 
+                            fullWidth
+                            onClick={otpVerifyHandler}
+                            disabled={otpLoading}
+                            sx={{ textTransform: "none", py: 1.5, fontWeight: 'bold', fontSize: '1rem' }}
+                        >
+                            Verify OTP
+                        </Button>
+                        {otpLoading && (
+                            <i className="fa-solid fa-spinner animate-spin absolute right-4 text-white/50"></i>
+                        )}
+                    </div>
+
+                    <div className='mt-4'>
+                        <p className='text-gray-400'>
+                            Don't get the code? 
+                            <span 
+                                className="text-blue-500 underline cursor-pointer ml-2 font-medium hover:text-blue-400" 
+                                onClick={resendOtpHandler}
+                            >
+                                Resend code
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Logo Animation Section */}
+            <div className='w-full lg:w-[50%] flex items-center justify-center mt-6 lg:mt-0'>
+                <div className='scale-75 md:scale-90 lg:scale-100'>
+                    <LogoAnimation />
+                </div>
+            </div>
+
         </div>
-
-        <div className='w-full mt-6'>
-             <Button variant="contained"   size="large" fullWidth
-             onClick={otpVerifyHandler}
-         
-                   sx={{textTransform:"none"}}
-             >
-                Verify Otp
-                </Button>
-                 {
-            otpLoading &&  <i class="fa-solid fa-spinner animate-spin -ml-8"></i>
-           }
-        </div>
-
-        <div>
-            <p className='mt-3'>Don't get the code? <span 
-            className="underline cursor-pointer ml-2" onClick={resendOtpHandler} >Resend code</span></p>
-        </div>
-     </div>
-
-    </div>
-
-    {/* logo animation */}
-    <div className='w-[50%] flex items-center justify-center -ml-14'>
-      <LogoAnimation/>
-    </div>
-
-
-   </div>
-  )
+    )
 }
 
-export default ResetPassOtpVerify
+export default ResetPassOtpVerify;
