@@ -3,18 +3,17 @@ const nodeMailer = require("nodemailer");
 exports.sendMail = async (email, subject, body) => {
     try {
         const transporter = nodeMailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true, // Port 465 ke liye true hona zaroori hai
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-            // 🟢 Ye lines connection timeout ko fix karne ke liye hain
-            connectionTimeout: 10000, // 10 seconds
-            greetingTimeout: 10000,
-            socketTimeout: 10000,
-        });
+    host: "smtp.gmail.com",
+    port: 587,          // 🔴 Changed to 587
+    secure: false,      // 🔴 Must be false for 587
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+        rejectUnauthorized: false // 🔴 Important for Render
+    }
+});
 
         // 🔴 AWAIT lagana mat bhoolna, logs ke mutabiq ye missing lag raha tha
         const info = await transporter.sendMail({
